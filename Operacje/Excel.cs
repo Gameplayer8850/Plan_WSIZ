@@ -5,16 +5,40 @@ using System.IO;
 using System.Text;
 using Dane.Plan;
 using Dane;
+using System.Data;
 
 namespace Operacje
 {
     class Excel
     {
+        string[] dni_tyg = { "poniedziałek", "wtorek", "środa", "czwartek", "piątek"};
         public string Zwroc_roznice(int numer_semestru)
         {
+            string result="";
             System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
             List<Tydzien> stary_plan = Zwroc_plan(Globalne.lokalizacja+@"/"+Globalne.nazwy_folderow[(int)Globalne.foldery.Plany]+@"/"+Globalne.nazwy_plikow_planu[(int)Globalne.pliki_plany.Stary] + ".xls", numer_semestru);
-            return "";
+            List<Tydzien> nowy_plan = Zwroc_plan(Globalne.lokalizacja + @"/" + Globalne.nazwy_folderow[(int)Globalne.foldery.Plany] + @"/" + Globalne.nazwy_plikow_planu[(int)Globalne.pliki_plany.Nowy] + ".xls", numer_semestru);
+            List<Dzien> zmienione_dni = new List<Dzien>();
+            foreach(Tydzien tyd in nowy_plan)
+            {
+                foreach(Tydzien tyd2 in stary_plan)
+                {
+                    if (tyd.data != tyd2.data) continue;
+                    bool flaga = false;
+                    foreach(Dzien dzien in tyd.dni_tygodnia)
+                    {
+                        foreach(Dzien dzien2 in tyd2.dni_tygodnia)
+                        {
+                            if (dzien.data != dzien2.data) continue;
+                            flaga = true;
+                            if (dzien.Czy_inny_plan(dzien2)) zmienione_dni.Add(dzien);
+                        }
+                        if(!flaga) zmienione_dni.Add(dzien);
+                    }
+                }
+            }
+            foreach (Dzien dzien in zmienione_dni) result += "Zmiany w dniu: " + dzien.data+ " ("+dni_tyg[dzien.dzien]+")\n";
+            return result;
         }
 
         public List<Tydzien> Zwroc_plan(string nazwa_pliku, int numer_semestru)
@@ -45,23 +69,35 @@ namespace Operacje
                         Tydzien tyd = new Tydzien();
                         tyd.data = reader.Name;
                         Dzien dzien = null;
+                        bool flaga = false;
                         while (reader.Read()) //Each ROW
                         {
+                            
                             string godzina = "";
+                            DataTable dt = new DataTable();
                             for (int column = col_start; column < col_stop+1; column++)
                             {
+                                string wartosc = reader.GetValue(column).ToString();
                                 if (column == col_start)
                                 {
-                                    int numer_dnia = Zwroc_numer_dnia(reader.GetValue(column).ToString());
-                                    if (numer_dnia != -1)
-                                    {
-                                        //if(dzien!=null) dzien
+                                    if (wartosc.Trim() == "") break;
+                                    int numer_dnia = Zwroc_numer_dnia(wartosc);
+                                    if (numer_dnia != -1){
+                                        if (dzien != null) tyd.dni_tygodnia.Add(dzien);
+                                        flaga = true;
+                                        dzien = new Dzien();
+                                        dzien.dzien = numer_dnia;
+                                        dzien.data = Zwroc_date_dnia(wartosc, numer_dnia);
+                                        continue;
                                     }
+                                    if (flaga) godzina = wartosc;
                                 }
-                                //Console.WriteLine(reader.GetString(column));//Will blow up if the value is decimal etc. 
-                                Console.WriteLine(reader.GetValue(column));//Get Value returns object
+                                if (!flaga || wartosc.Trim() == "" || wartosc.Trim() == "przerwa") continue;
+                                dzien.Dodaj_zajecie(godzina, wartosc);
                             }
                         }
+                        if (dzien != null) tyd.dni_tygodnia.Add(dzien);
+                        if(tyd.dni_tygodnia.Count!=0) tygodnie.Add(tyd);
                     } while (reader.NextResult()); //Move to NEXT SHEET
                 }
             }
@@ -71,12 +107,13 @@ namespace Operacje
         public int Zwroc_numer_dnia(string wartosc)
         {
             string dzien = wartosc.ToLower();
-            if (dzien.Contains("poniedziałek")) return 0;
-            if (dzien.Contains("wtorek")) return 1;
-            if (dzien.Contains("środa")) return 2;
-            if (dzien.Contains("czwartek")) return 3;
-            if (dzien.Contains("piątek")) return 4;
+            for (int i = 0; i < dni_tyg.Length + 1; i++) if (dni_tyg[i] == dzien) return i;
             return -1;
+        }
+
+        public string Zwroc_date_dnia(string wartosc, int dzien)
+        {
+            return wartosc.ToLower().Replace(dni_tyg[dzien], "").Trim();
         }
 
     }

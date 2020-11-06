@@ -63,8 +63,16 @@ namespace Operacje
             if (lista_planow != null) 
                 foreach(string nazwa in lista_planow)
                 {
-                    if (nazwa == Globalne.nazwy_plikow_planu[(int)Globalne.pliki_plany.Nowy]) istnieje_nowy_plan = true;
-                    if (nazwa == Globalne.nazwy_plikow_planu[(int)Globalne.pliki_plany.Stary]) istnieje_stary_plan = true;
+                    if (nazwa.Contains(Globalne.nazwy_plikow_planu[(int)Globalne.pliki_plany.Nowy]))
+                    {
+                        istnieje_nowy_plan = true;
+                        Globalne.nazwy_plikow_planu[(int)Globalne.pliki_plany.Nowy] = nazwa;
+                    }
+                    else if (nazwa.Contains(Globalne.nazwy_plikow_planu[(int)Globalne.pliki_plany.Stary]))
+                    {
+                        istnieje_stary_plan = true;
+                        Globalne.nazwy_plikow_planu[(int)Globalne.pliki_plany.Stary] = nazwa;
+                    }
                 }
             string stara_lokalizacja = Globalne.lokalizacja + @"/" + Globalne.nazwy_folderow[(int)Globalne.foldery.Plany] + @"/" + Globalne.nazwy_plikow_planu[(int)Globalne.pliki_plany.Stary];
             string nowa_lokalizacja = Globalne.lokalizacja + @"/" + Globalne.nazwy_folderow[(int)Globalne.foldery.Plany] + @"/" + Globalne.nazwy_plikow_planu[(int)Globalne.pliki_plany.Nowy];
@@ -75,7 +83,7 @@ namespace Operacje
         public void Roznice_w_planie()
         {
             Excel ex = new Excel();
-            string s=ex.Zwroc_roznice(5);
+            wb.Wyslij_do_webhooka(((Config)pobrane_obiekty_xml[(int)Globalne.pliki_xml.Config]).webhook_nowy_plan, ex.Zwroc_roznice(5));
         }
     }
 }
