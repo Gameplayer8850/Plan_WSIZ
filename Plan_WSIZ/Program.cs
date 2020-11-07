@@ -8,8 +8,10 @@ namespace Plan_WSIZ
         static void Main(string[] args)
         {
             Zarzadzanie zar = new Zarzadzanie();
-            zar.Roznice_w_planie();
+            //zar.Podmien_rozszerzenia_plikow();
+            //zar.Roznice_w_planie();
             //if (!zar.Pobierz_config()) return;
+            string cos=zar.Zwroc_link_plan("https://www.wsiz.wroc.pl/plany-zajec/");
 
 
             foreach (string argument in args)

@@ -21,7 +21,7 @@ namespace Dane.Plan
         public bool Czy_inny_plan(Dzien stary_dzien)
         {
             if (stary_dzien.zajecia.Count != this.zajecia.Count) return true;
-            for (int i = 0; i < this.zajecia.Count + 1; i++) if (!stary_dzien.zajecia[i].Equals(this.zajecia[i])) return true;
+            for (int i = 0; i < this.zajecia.Count; i++) if (!stary_dzien.zajecia[i].Equals(this.zajecia[i])) return true;
             return false;
         }
         class Zajecie

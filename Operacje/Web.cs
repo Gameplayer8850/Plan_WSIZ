@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Linq;
 using System.Net;
 using System.Text;
 using HtmlAgilityPack;
-using ScrapySharp.Extensions;
 
 namespace Operacje
 {
@@ -34,31 +34,32 @@ namespace Operacje
             }
             return true;
         }
-        public void Zwroc_tabele(string link)
-        {
-            WebClient webClient = new WebClient();
-            string page = webClient.DownloadString(link);
 
-            HtmlAgilityPack.HtmlDocument doc = new HtmlAgilityPack.HtmlDocument();
-            doc.LoadHtml(page);
-
-            var table = doc.DocumentNode.CssSelect("table");
-            System.Diagnostics.Debug.WriteLine(table.ToString());
-            //((HtmlAgilityPack.HtmlNode)table).ge
-            /*
-            List<List<string>> table = doc.DocumentNode.SelectSingleNode("//table[@class='mydata']")
-                        .Descendants("tr")
-                        .Skip(1)
-                        .Where(tr => tr.Elements("td").Count() > 1)
-                        .Select(tr => tr.Elements("td").Select(td => td.InnerText.Trim()).ToList())
-                        .ToList();
-            */
-        }
-        public string Zwroc_link_do_planu(string url)
+        public List<List<string>> Zwroc_dane_o_najnowszym_planie(string url)
         {
-            HtmlDocument document = new HtmlDocument();
-            document.LoadHtml(url);
-            return document.DocumentNode.CssSelect("table.table table-striped").ToString();
+            try
+            {
+                HtmlDocument document = new HtmlDocument();
+                string strona = "";
+                using (WebClient web = new WebClient())
+                {
+                    strona = web.DownloadString(url);
+                }
+
+                document.LoadHtml(strona);
+
+                List<List<string>> table = document.DocumentNode.SelectNodes("//table[@class='table table-striped']")[1]
+                .Descendants("tr")
+                .Where(tr => tr.Elements("td").Count() > 1)
+                .Select(tr => tr.Elements("td").Select(td => (td.InnerText.Trim() + (td.FirstChild.Attributes.Count > 0 ? " link=[" + td.FirstChild.Attributes[0].Value.ToString() + "]" : ""))).ToList())
+                .ToList();
+
+                return table;
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 }

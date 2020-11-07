@@ -16,8 +16,8 @@ namespace Operacje
         {
             string result="";
             System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
-            List<Tydzien> stary_plan = Zwroc_plan(Globalne.lokalizacja+@"/"+Globalne.nazwy_folderow[(int)Globalne.foldery.Plany]+@"/"+Globalne.nazwy_plikow_planu[(int)Globalne.pliki_plany.Stary] + ".xls", numer_semestru);
-            List<Tydzien> nowy_plan = Zwroc_plan(Globalne.lokalizacja + @"/" + Globalne.nazwy_folderow[(int)Globalne.foldery.Plany] + @"/" + Globalne.nazwy_plikow_planu[(int)Globalne.pliki_plany.Nowy] + ".xls", numer_semestru);
+            List<Tydzien> stary_plan = Zwroc_plan(Globalne.lokalizacja+@"/"+Globalne.nazwy_folderow[(int)Globalne.foldery.Plany]+@"/"+Globalne.nazwy_plikow_planu[(int)Globalne.pliki_plany.Stary] + Globalne.rozszerzenia_plikow_planu[(int)Globalne.pliki_plany.Stary], numer_semestru);
+            List<Tydzien> nowy_plan = Zwroc_plan(Globalne.lokalizacja + @"/" + Globalne.nazwy_folderow[(int)Globalne.foldery.Plany] + @"/" + Globalne.nazwy_plikow_planu[(int)Globalne.pliki_plany.Nowy] + Globalne.rozszerzenia_plikow_planu[(int)Globalne.pliki_plany.Nowy], numer_semestru);
             List<Dzien> zmienione_dni = new List<Dzien>();
             foreach(Tydzien tyd in nowy_plan)
             {
@@ -72,28 +72,42 @@ namespace Operacje
                         bool flaga = false;
                         while (reader.Read()) //Each ROW
                         {
-                            
+                            bool czy_pierwsze_puste = false;
                             string godzina = "";
-                            DataTable dt = new DataTable();
                             for (int column = col_start; column < col_stop+1; column++)
                             {
-                                string wartosc = reader.GetValue(column).ToString();
-                                if (column == col_start)
+                                string wartosc = reader.GetValue(column)==null?"": reader.GetValue(column).ToString();
+                                if(column == col_start)
                                 {
-                                    if (wartosc.Trim() == "") break;
-                                    int numer_dnia = Zwroc_numer_dnia(wartosc);
-                                    if (numer_dnia != -1){
-                                        if (dzien != null) tyd.dni_tygodnia.Add(dzien);
-                                        flaga = true;
-                                        dzien = new Dzien();
-                                        dzien.dzien = numer_dnia;
-                                        dzien.data = Zwroc_date_dnia(wartosc, numer_dnia);
+                                    if(wartosc.Trim() == "")
+                                    {
+                                        czy_pierwsze_puste = true;
                                         continue;
                                     }
-                                    if (flaga) godzina = wartosc;
+                                    if(wartosc.Trim() != "" && flaga)
+                                    {
+                                        godzina = wartosc;
+                                        continue;
+                                    }
+                                }
+                                if (czy_pierwsze_puste)
+                                {
+                                    int numer_dnia = Zwroc_numer_dnia(wartosc);
+                                    if (numer_dnia == -1)
+                                    {
+                                        czy_pierwsze_puste = false;
+                                        break;
+                                    }
+                                    if (dzien != null) tyd.dni_tygodnia.Add(dzien);
+                                    flaga = true;
+                                    dzien = new Dzien();
+                                    dzien.dzien = numer_dnia;
+                                    dzien.data = Zwroc_date_dnia(wartosc, numer_dnia);
+                                    break;
                                 }
                                 if (!flaga || wartosc.Trim() == "" || wartosc.Trim() == "przerwa") continue;
                                 dzien.Dodaj_zajecie(godzina, wartosc);
+                                
                             }
                         }
                         if (dzien != null) tyd.dni_tygodnia.Add(dzien);
@@ -107,7 +121,7 @@ namespace Operacje
         public int Zwroc_numer_dnia(string wartosc)
         {
             string dzien = wartosc.ToLower();
-            for (int i = 0; i < dni_tyg.Length + 1; i++) if (dni_tyg[i] == dzien) return i;
+            for (int i = 0; i < dni_tyg.Length; i++) if (dzien.Contains(dni_tyg[i])) return i;
             return -1;
         }
 

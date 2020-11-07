@@ -6,7 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="ExcelDataReader" Version="3.6.0" />
-    <PackageReference Include="ScrapySharp" Version="3.0.0" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.8.13" />
   </ItemGroup>
 
   <ItemGroup>
