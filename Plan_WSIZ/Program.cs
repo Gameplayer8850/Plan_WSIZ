@@ -8,22 +8,26 @@ namespace Plan_WSIZ
         static void Main(string[] args)
         {
             Zarzadzanie zar = new Zarzadzanie();
-            //zar.Podmien_rozszerzenia_plikow();
-            //zar.Roznice_w_planie();
-            //if (!zar.Pobierz_config()) return;
-            string cos=zar.Zwroc_link_plan("https://www.wsiz.wroc.pl/plany-zajec/");
-
+            if (!zar.Pobierz_dane_poczatkowe()) return;
+            zar.Podmien_rozszerzenia_plikow();
 
             foreach (string argument in args)
             {
                 switch (argument)
                 {
-                    case "nowy_plan":
-
+                    case "-s":
+                        zar.Sprawdz_plan();
+                        break;
+                    case "-sr":
+                        zar.Sprawdz_plan(true);
+                        break;
+                    case "-r":
+                        zar.Roznice_w_planie();
+                        break;
+                    default:
                         break;
                 }
             }
-            Console.WriteLine("Hello World!");
         }
     }
 }

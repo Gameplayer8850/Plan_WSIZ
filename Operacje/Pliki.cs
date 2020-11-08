@@ -14,6 +14,7 @@ namespace Operacje
             List<string> lista_plikow = null;
             try
             {
+                Directory.CreateDirectory(lokalizacja);
                 lista_plikow = Directory.EnumerateFiles(lokalizacja, "*.*", SearchOption.AllDirectories).Where(s => rozszerzenia.Contains(Path.GetExtension(s).TrimStart('.').ToLowerInvariant())).ToList<string>();
                 return lista_plikow;
             }

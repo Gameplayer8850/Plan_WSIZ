@@ -14,7 +14,11 @@ namespace Dane.XML
 
         public void Stworz_szablon()
         {
-
+            link_do_strony_z_planem = "[LINK DO ZAKŁADKI Z PLANAMI ZAJĘĆ]";
+            webhook_nowy_plan = "[WEBHOOK DO INFORMACJI O NOWYM PLANIE]";
+            webhook_grupa_A = "[WEBHOOK DO WYSYŁANIE LINKÓW DO ZAJĘĆ DLA GRUPY A]";
+            webhook_grupa_B = "[WEBHOOK DO WYSYŁANIE LINKÓW DO ZAJĘĆ DLA GRUPY B]";
+            semestr = -1;
         }
 
     }

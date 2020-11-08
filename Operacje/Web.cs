@@ -51,7 +51,8 @@ namespace Operacje
                 List<List<string>> table = document.DocumentNode.SelectNodes("//table[@class='table table-striped']")[1]
                 .Descendants("tr")
                 .Where(tr => tr.Elements("td").Count() > 1)
-                .Select(tr => tr.Elements("td").Select(td => (td.InnerText.Trim() + (td.FirstChild.Attributes.Count > 0 ? " link=[" + td.FirstChild.Attributes[0].Value.ToString() + "]" : ""))).ToList())
+                .Select(tr => tr.Elements("td").Select(td =>  (td.FirstChild.Attributes.Count > 0 ? td.FirstChild.Attributes[0].Value.ToString(): (td.InnerText.Trim()))).ToList())
+                //.FirstOrDefault(null)
                 .ToList();
 
                 return table;

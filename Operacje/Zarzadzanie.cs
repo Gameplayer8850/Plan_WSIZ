@@ -41,16 +41,19 @@ namespace Operacje
             pobrane_obiekty_xml.Add(obj);
             return true;
         }
-        public bool Czy_nowy_plan()
+        private bool Czy_nowy_plan()
         {
-            bool result=true;
             Temp tmp;
-            tmp = (Temp) pobrane_obiekty_xml[(int)Globalne.pliki_xml.Temp];
-            //((Config)pobrane_obiekty_xml[(int)Globalne.pliki_xml.Config]).link_do_strony_z_planem);
-            //if (czy_istnieje_temp ) result=false;
-            return result;
+            tmp = (Temp)pobrane_obiekty_xml[(int)Globalne.pliki_xml.Temp];
+            List<List<string>> dane = wb.Zwroc_dane_o_najnowszym_planie(((Config)pobrane_obiekty_xml[(int)Globalne.pliki_xml.Config]).link_do_strony_z_planem);
+            if (dane == null || dane.Count == 0) return false;
+            Temp tmp2 = new Temp() { data_dodania = DateTime.Parse(dane[0][1]), link_do_planu = dane[0][2]};
+            opxml.Zapisz_dane(tmp2, Globalne.pliki_xml.Temp);
+            if (czy_istnieje_temp && tmp2.Equals(tmp)) return false;
+            pobrane_obiekty_xml[(int)Globalne.pliki_xml.Temp] = tmp2;
+            return true;
         }
-        public void Sprawdz_plan()
+        public void Sprawdz_plan(bool czy_sprawdzic_roznice=false)
         {
             if (!Czy_nowy_plan()) return;
             string link = ((Temp)pobrane_obiekty_xml[(int)Globalne.pliki_xml.Temp]).link_do_planu;
@@ -65,14 +68,16 @@ namespace Operacje
             Globalne.rozszerzenia_plikow_planu[(int)Globalne.pliki_plany.Stary] = (string)Globalne.rozszerzenia_plikow_planu[(int)Globalne.pliki_plany.Nowy].Clone();
             Globalne.rozszerzenia_plikow_planu[(int)Globalne.pliki_plany.Nowy] = link.Substring(link.LastIndexOf('.'));
             wb.Pobierz_plik(link, nowa_lokalizacja + Globalne.rozszerzenia_plikow_planu[(int)Globalne.pliki_plany.Nowy]);
+            if (czy_sprawdzic_roznice) Roznice_w_planie();
         }
         public void Roznice_w_planie()
         {
+            if (!Czy_mozna_porownywac()) return;
             Excel ex = new Excel();
             int numer_semestru = ((Config)pobrane_obiekty_xml[(int)Globalne.pliki_xml.Config]).semestr;
-            string wiadomosc=ex.Zwroc_roznice(5);
+            string wiadomosc=ex.Zwroc_roznice(numer_semestru);
             if (wiadomosc == "") wiadomosc = "Nie znaleziono różnic dla " + numer_semestru + " semestru";
-            wb.Wyslij_do_webhooka(((Config)pobrane_obiekty_xml[(int)Globalne.pliki_xml.Config]).webhook_nowy_plan, ex.Zwroc_roznice(numer_semestru));
+            wb.Wyslij_do_webhooka(((Config)pobrane_obiekty_xml[(int)Globalne.pliki_xml.Config]).webhook_nowy_plan, wiadomosc);
         }
 
         public void Podmien_rozszerzenia_plikow()
@@ -86,9 +91,10 @@ namespace Operacje
                     else if (nazwa.Contains(Globalne.nazwy_plikow_planu[(int)Globalne.pliki_plany.Stary])) Globalne.rozszerzenia_plikow_planu[(int)Globalne.pliki_plany.Stary] = nazwa_bez_sciezki.Substring(nazwa_bez_sciezki.LastIndexOf('.'));
                 }
         }
-        public string Zwroc_link_plan(string link)
+
+        private bool Czy_mozna_porownywac()
         {
-            return wb.Zwroc_dane_o_najnowszym_planie(link).ToString();
+            return (Globalne.rozszerzenia_plikow_planu[0] != "" && Globalne.rozszerzenia_plikow_planu[1] != "");
         }
     }
 }
