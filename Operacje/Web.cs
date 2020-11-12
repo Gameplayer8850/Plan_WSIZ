@@ -12,11 +12,16 @@ namespace Operacje
     {
         public void Wyslij_do_webhooka(string url, string wiadomosc)
         {
-            using (WebClient web = new WebClient())
+            try
             {
-                web.UploadValues(url, new NameValueCollection() {
-                { "content", wiadomosc}
-            });
+                using (WebClient web = new WebClient())
+                {
+                    web.UploadValues(url, new NameValueCollection() {{ "content", wiadomosc}});
+                }
+            }
+            catch
+            {
+                System.Diagnostics.Debug.WriteLine("Nie udało się wysłać wiadomości");
             }
         }
         public bool Pobierz_plik(string url, string lokalizacja)

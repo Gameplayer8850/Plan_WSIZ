@@ -24,6 +24,9 @@ namespace Plan_WSIZ
                     case "-r":
                         zar.Roznice_w_planie();
                         break;
+                    case "-e":
+                        zar.Elearning_dla_grup();
+                        break;
                     default:
                         break;
                 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Dane.XML;
 using Dane;
+using Dane.Plan;
 
 namespace Operacje
 {
@@ -76,7 +77,7 @@ namespace Operacje
             Excel ex = new Excel();
             int numer_semestru = ((Config)pobrane_obiekty_xml[(int)Globalne.pliki_xml.Config]).semestr;
             string wiadomosc=ex.Zwroc_roznice(numer_semestru);
-            if (wiadomosc == "") wiadomosc = "Nie znaleziono różnic dla " + numer_semestru + " semestru";
+            if (wiadomosc == "") wiadomosc = "`Nie znaleziono różnic dla " + numer_semestru + " semestru`";
             wb.Wyslij_do_webhooka(((Config)pobrane_obiekty_xml[(int)Globalne.pliki_xml.Config]).webhook_nowy_plan, wiadomosc);
         }
 
@@ -95,6 +96,30 @@ namespace Operacje
         private bool Czy_mozna_porownywac()
         {
             return (Globalne.rozszerzenia_plikow_planu[0] != "" && Globalne.rozszerzenia_plikow_planu[1] != "");
+        }
+
+        public void Elearning_dla_grup()
+        {
+            Excel ex = new Excel();
+            DateTime dzisiaj = DateTime.Now;
+            List<string> lista_plikow = plk.Zwroc_liste_plikow(Globalne.lokalizacja + Globalne.nazwy_folderow[(int)Globalne.foldery.Elearning]);
+            if (lista_plikow == null || lista_plikow.Count == 0) return;
+            List<Elearning> zajecia = ex.Zwroc_zajecia_elearning_dla_grupy(lista_plikow[0], dzisiaj, ((Config)pobrane_obiekty_xml[(int)Globalne.pliki_xml.Config]).semestr);
+            if (zajecia == null || zajecia.Count == 0) return;
+            string grupa_a = "";
+            string grupa_b = "";
+            foreach(Elearning zaj in zajecia)
+            {
+                if (zaj.grupa.Contains(" A")) grupa_a += "\n"+zaj.Zwroc_dane_do_wiadomosci();
+                else if (zaj.grupa.Contains(" B")) grupa_b += "\n" + zaj.Zwroc_dane_do_wiadomosci();
+                else
+                {
+                    grupa_a += "\n" + zaj.Zwroc_dane_do_wiadomosci();
+                    grupa_b += "\n" + zaj.Zwroc_dane_do_wiadomosci();
+                }
+            }
+            if (grupa_a != "") wb.Wyslij_do_webhooka(((Config)pobrane_obiekty_xml[(int)Globalne.pliki_xml.Config]).webhook_grupa_A, "`Dzień: " + dzisiaj.Date.ToString("dd.MM") + "`" + grupa_a);
+            if (grupa_b != "") wb.Wyslij_do_webhooka(((Config)pobrane_obiekty_xml[(int)Globalne.pliki_xml.Config]).webhook_grupa_B, "`Dzień: " + dzisiaj.Date.ToString("dd.MM") + "`" + grupa_b);
         }
     }
 }

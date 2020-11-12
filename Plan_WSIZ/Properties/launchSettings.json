@@ -1,8 +1,7 @@
 {
   "profiles": {
     "Plan_WSIZ": {
-      "commandName": "Project",
-      "commandLineArgs": "-sr"
+      "commandName": "Project"
     }
   }
 }
