@@ -27,6 +27,9 @@ namespace Plan_WSIZ
                     case "-e":
                         zar.Elearning_dla_grup();
                         break;
+                    case "-e2":
+                        zar.Nowy_elearning();
+                        break;
                     default:
                         break;
                 }

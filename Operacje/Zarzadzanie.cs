@@ -121,5 +121,20 @@ namespace Operacje
             if (grupa_a != "") wb.Wyslij_do_webhooka(((Config)pobrane_obiekty_xml[(int)Globalne.pliki_xml.Config]).webhook_grupa_A, "`Dzień: " + dzisiaj.Date.ToString("dd.MM") + "`" + grupa_a);
             if (grupa_b != "") wb.Wyslij_do_webhooka(((Config)pobrane_obiekty_xml[(int)Globalne.pliki_xml.Config]).webhook_grupa_B, "`Dzień: " + dzisiaj.Date.ToString("dd.MM") + "`" + grupa_b);
         }
+        public void Nowy_elearning()
+        {
+            Excel ex = new Excel();
+            DateTime dzisiaj = DateTime.Now;
+            Dzien dzien=ex.Zwroc_dzien(Globalne.lokalizacja + @"/" + Globalne.nazwy_folderow[(int)Globalne.foldery.Plany] + @"/" + Globalne.nazwy_plikow_planu[(int)Globalne.pliki_plany.Nowy] + Globalne.rozszerzenia_plikow_planu[(int)Globalne.pliki_plany.Nowy], dzisiaj.ToString("d.MM"), ((Config)pobrane_obiekty_xml[(int)Globalne.pliki_xml.Config]).semestr);
+            if (dzien == null) return;
+            List<string> lista_plikow = plk.Zwroc_liste_plikow(Globalne.lokalizacja + Globalne.nazwy_folderow[(int)Globalne.foldery.Elearning]);
+            if (lista_plikow == null || lista_plikow.Count == 0) return;
+            List<string[]> dane = ex.Zwroc_nazwiska_linki(lista_plikow[0]);
+            if (dane == null || dane.Count == 0) return;
+            string grupa_a = dzien.Zwroc_dane_do_wiadomosci_dla_grupy(1, dane);
+            string grupa_b = dzien.Zwroc_dane_do_wiadomosci_dla_grupy(2, dane);
+            if (grupa_a != "") wb.Wyslij_do_webhooka(((Config)pobrane_obiekty_xml[(int)Globalne.pliki_xml.Config]).webhook_grupa_A, "`Dzień: " + dzisiaj.Date.ToString("dd.MM") + "`" + grupa_a);
+            if (grupa_b != "") wb.Wyslij_do_webhooka(((Config)pobrane_obiekty_xml[(int)Globalne.pliki_xml.Config]).webhook_grupa_B, "`Dzień: " + dzisiaj.Date.ToString("dd.MM") + "`" + grupa_b);
+        }
     }
 }

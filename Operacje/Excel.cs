@@ -6,6 +6,7 @@ using System.Text;
 using Dane.Plan;
 using Dane;
 using System.Data;
+using System.Linq;
 
 namespace Operacje
 {
@@ -126,6 +127,158 @@ namespace Operacje
             return tygodnie;
         }
 
+        public Dzien Zwroc_dzien(string nazwa_pliku, string wybrana_data, int numer_semestru)
+        {
+            System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+            Dzien result = new Dzien();
+            try
+            {
+                using (var stream = File.Open(nazwa_pliku, FileMode.Open, FileAccess.Read))
+                {
+                    using (var reader = ExcelReaderFactory.CreateReader(stream))
+                    {
+                        do
+                        {
+                            if (!reader.Name.Contains('-') || !reader.Name.Contains('.')) continue;
+                            reader.Read();
+                            int col_start = -1;
+                            int col_stop = -1;
+                            foreach (CellRange cell in reader.MergeCells)
+                            {
+                                if (cell.FromRow == 0)
+                                {
+                                    if (reader.GetValue(cell.FromColumn).ToString().ToLower() == "semestr " + numer_semestru)
+                                    {
+                                        col_start = cell.FromColumn;
+                                        col_stop = cell.ToColumn;
+                                    }
+                                }
+                            }
+                            if (col_start == -1) continue;
+
+                            List<CellRange> zmergowane = new List<CellRange>();
+                            if (reader.MergeCells == null) continue;
+                            foreach (CellRange cell in reader.MergeCells)
+                            {
+                                if (cell.FromColumn >= col_start && cell.ToColumn <= col_stop) zmergowane.Add(cell);
+                            }
+                            if (zmergowane.Count != 0) zmergowane = zmergowane.OrderBy(x => x.FromRow).ToList();
+
+                            int row_number = -1;
+                            bool czy_znaleziono = false;
+                            List<string> zajecia = new List<string>();
+                            List<string> wykladowcy_lista = new List<string>();
+                            string godzina = null;
+                            bool czy_poprzednia_linijka = false;
+                            bool czy_znaleziono__lekcje = false;
+                            do
+                            {
+                                row_number++;
+                                if (!czy_znaleziono && zmergowane.Count!=0 && row_number != zmergowane[0].FromRow) continue;
+                                bool wykladowcy = false;
+                                for (int column = col_start; column < col_stop + 1; column++)
+                                {
+                                    string wartosc = reader.GetValue(column) == null ? "" : reader.GetValue(column).ToString().Trim();
+                                    if (!czy_znaleziono)
+                                    {
+                                        if (wartosc == "") continue;
+                                        int numer_dnia = Zwroc_numer_dnia(wartosc);
+                                        if (wartosc.Contains(wybrana_data) && numer_dnia != -1)
+                                        {
+                                            czy_znaleziono = true;
+                                            result.data = wybrana_data;
+                                            result.dzien = numer_dnia;
+                                            zmergowane.RemoveAt(0);
+                                            break;
+                                        }
+                                        else
+                                        {
+                                            zmergowane.RemoveAt(0);
+                                            break;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if (column == col_start)
+                                        {
+                                            if (wartosc.ToLower().Contains("gr"))
+                                            {
+                                                czy_poprzednia_linijka = true;
+                                                break;
+                                            }
+                                            if (wartosc == "")
+                                            {
+                                                if (czy_poprzednia_linijka)
+                                                {
+                                                    if (!czy_znaleziono__lekcje) break;
+                                                    else return result;
+                                                }
+                                                czy_poprzednia_linijka=wykladowcy = true;
+                                                continue;
+                                            }
+                                            if (!wykladowcy)
+                                            {
+                                                zajecia = new List<string>();
+                                            }
+                                            czy_poprzednia_linijka=wykladowcy = false;
+                                            godzina = wartosc;
+                                            czy_znaleziono__lekcje = true;
+                                        }
+                                        else
+                                        {
+                                            if(zmergowane.Count != 0 && row_number == zmergowane[0].FromRow)
+                                            {
+                                                if (wartosc == "") continue;
+                                                int numer_dnia = Zwroc_numer_dnia(wartosc);
+                                                if (numer_dnia != -1)
+                                                {
+                                                    return result;
+                                                }
+                                                if(!wykladowcy) zajecia.Add(wartosc);
+                                                else
+                                                {
+                                                    result.Dodaj_zajecie(godzina, zajecia[0], wartosc, 1);
+                                                    result.Dodaj_zajecie(godzina, zajecia[0], wartosc, 2);
+                                                    godzina = null;
+                                                    zajecia = new List<string>();
+                                                    zmergowane.RemoveAt(0);
+                                                    break;
+                                                }
+                                                zmergowane.RemoveAt(0);
+                                                break;
+                                            }
+                                            if (!wykladowcy) zajecia.Add(wartosc);
+                                            else if (zajecia.Count != 0)
+                                            {
+                                                wykladowcy_lista.Add(wartosc);
+                                                if (column == col_stop)
+                                                {
+                                                    for (int i = 0; i < zajecia.Count; i++) result.Dodaj_zajecie(godzina, zajecia[i], wykladowcy_lista[i], i + 1);
+                                                    zajecia = new List<string>();
+                                                    wykladowcy_lista = new List<string>();
+                                                }
+                                            }
+                                                
+                                                
+                                        }
+                                    }
+
+                                }
+                            } while (reader.Read());
+
+                            if (czy_znaleziono) return result;
+
+                        } while (reader.NextResult());
+                        return null;
+                    }
+                }
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         public List<Elearning> Zwroc_zajecia_elearning_dla_grupy(string lokalizacja, DateTime data, int numer_semestru)
         {
             System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
@@ -236,5 +389,59 @@ namespace Operacje
             return wartosc.ToLower().Replace(dni_tyg[dzien], "").Trim();
         }
 
+        public List<string[]> Zwroc_nazwiska_linki(string nazwa_pliku)
+        {
+            System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+            List<string[]> lista = new List<string[]>();
+            try
+            {
+                using (var stream = File.Open(nazwa_pliku, FileMode.Open, FileAccess.Read))
+                {
+                    using (var reader = ExcelReaderFactory.CreateReader(stream))
+                    {
+                        do
+                        {
+                            bool first_row = true;
+                            int col_wykladowca = -1;
+                            int col_linki = -1;
+                            while (reader.Read())
+                            {
+                                string[] wiersz = new string[2];
+                                for (int column = 0; column < reader.FieldCount; column++)
+                                {
+                                    string wartosc = reader.GetValue(column) == null ? "" : reader.GetValue(column).ToString().Trim();
+                                    if (first_row)
+                                    {
+                                        switch (wartosc.ToLower())
+                                        {
+                                            case "wykładowca":
+                                                col_wykladowca = column;
+                                                break;
+                                            case "wideokonferencja":
+                                                col_linki = column;
+                                                break;
+                                            default:
+                                                break;
+                                        }
+                                    }else
+                                    {
+                                        if (column == col_wykladowca) wiersz[0] = wartosc;
+                                        else if (column == col_linki) wiersz[1] = wartosc;
+                                    }
+                                }
+                                if(!first_row) lista.Add(wiersz);
+                                else first_row = false;
+                            }
+
+                        } while (reader.NextResult());
+                        return lista;
+                    }
+                }
+            }
+            catch
+            {
+                return null;
+            }
+        }
     }
 }
