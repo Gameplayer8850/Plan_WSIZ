@@ -20,5 +20,9 @@ namespace Dane.XML
             if (tmp.data_dodania != this.data_dodania) return false;
             return true;
         }
+        public override int GetHashCode()
+        {
+            return link_do_planu.GetHashCode();
+        }
     }
 }

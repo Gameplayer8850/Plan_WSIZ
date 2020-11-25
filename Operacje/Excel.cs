@@ -16,8 +16,8 @@ namespace Operacje
         public string Zwroc_roznice(int numer_semestru)
         {
             string result="";
-            List<Tydzien> stary_plan = Zwroc_plan(Globalne.lokalizacja+@"/"+Globalne.nazwy_folderow[(int)Globalne.foldery.Plany]+@"/"+Globalne.nazwy_plikow_planu[(int)Globalne.pliki_plany.Stary] + Globalne.rozszerzenia_plikow_planu[(int)Globalne.pliki_plany.Stary], numer_semestru);
-            List<Tydzien> nowy_plan = Zwroc_plan(Globalne.lokalizacja + @"/" + Globalne.nazwy_folderow[(int)Globalne.foldery.Plany] + @"/" + Globalne.nazwy_plikow_planu[(int)Globalne.pliki_plany.Nowy] + Globalne.rozszerzenia_plikow_planu[(int)Globalne.pliki_plany.Nowy], numer_semestru);
+            List<Tydzien> stary_plan = Zwroc_plan(Path.Combine(Globalne.lokalizacja, Globalne.nazwy_folderow[(int)Globalne.foldery.Plany], Globalne.nazwy_plikow_planu[(int)Globalne.pliki_plany.Stary] + Globalne.rozszerzenia_plikow_planu[(int)Globalne.pliki_plany.Stary]), numer_semestru);
+            List<Tydzien> nowy_plan = Zwroc_plan(Path.Combine(Globalne.lokalizacja, Globalne.nazwy_folderow[(int)Globalne.foldery.Plany], Globalne.nazwy_plikow_planu[(int)Globalne.pliki_plany.Nowy] + Globalne.rozszerzenia_plikow_planu[(int)Globalne.pliki_plany.Nowy]), numer_semestru);
             List<Dzien> zmienione_dni = new List<Dzien>();
             if (stary_plan == null || nowy_plan == null) return result;
             foreach(Tydzien tyd in nowy_plan)

@@ -4,6 +4,7 @@ using System.Text;
 using Dane.XML;
 using Dane;
 using Dane.Plan;
+using System.IO;
 
 namespace Operacje
 {
@@ -62,8 +63,8 @@ namespace Operacje
             wb.Wyslij_do_webhooka(((Config)pobrane_obiekty_xml[(int)Globalne.pliki_xml.Config]).webhook_nowy_plan, wiadomosc);
             bool istnieje_nowy_plan= (Globalne.rozszerzenia_plikow_planu[(int)Globalne.pliki_plany.Nowy] != "");
             bool istnieje_stary_plan = (Globalne.rozszerzenia_plikow_planu[(int)Globalne.pliki_plany.Stary] != "");
-            string stara_lokalizacja = Globalne.lokalizacja + @"/" + Globalne.nazwy_folderow[(int)Globalne.foldery.Plany] + @"/" + Globalne.nazwy_plikow_planu[(int)Globalne.pliki_plany.Stary];
-            string nowa_lokalizacja = Globalne.lokalizacja + @"/" + Globalne.nazwy_folderow[(int)Globalne.foldery.Plany] + @"/" + Globalne.nazwy_plikow_planu[(int)Globalne.pliki_plany.Nowy];
+            string stara_lokalizacja = Path.Combine(Globalne.lokalizacja, Globalne.nazwy_folderow[(int)Globalne.foldery.Plany], Globalne.nazwy_plikow_planu[(int)Globalne.pliki_plany.Stary]);
+            string nowa_lokalizacja = Path.Combine(Globalne.lokalizacja, Globalne.nazwy_folderow[(int)Globalne.foldery.Plany], Globalne.nazwy_plikow_planu[(int)Globalne.pliki_plany.Nowy]);
             if (istnieje_stary_plan) plk.Usun_plik(stara_lokalizacja + Globalne.rozszerzenia_plikow_planu[(int)Globalne.pliki_plany.Stary]);
             if (istnieje_nowy_plan) plk.Zmien_nazwe(nowa_lokalizacja + Globalne.rozszerzenia_plikow_planu[(int)Globalne.pliki_plany.Nowy], stara_lokalizacja + Globalne.rozszerzenia_plikow_planu[(int)Globalne.pliki_plany.Nowy]);
             Globalne.rozszerzenia_plikow_planu[(int)Globalne.pliki_plany.Stary] = (string)Globalne.rozszerzenia_plikow_planu[(int)Globalne.pliki_plany.Nowy].Clone();
@@ -83,11 +84,11 @@ namespace Operacje
 
         public void Podmien_rozszerzenia_plikow()
         {
-            List<string> lista_planow = plk.Zwroc_liste_plikow(Globalne.lokalizacja + @"/" + Globalne.nazwy_folderow[(int)Globalne.foldery.Plany]);
+            List<string> lista_planow = plk.Zwroc_liste_plikow(Path.Combine(Globalne.lokalizacja, Globalne.nazwy_folderow[(int)Globalne.foldery.Plany]));
             if (lista_planow != null)
                 foreach (string nazwa in lista_planow)
                 {
-                    string nazwa_bez_sciezki = nazwa.Substring(nazwa.LastIndexOf('\\'));
+                    string nazwa_bez_sciezki = nazwa.Substring(nazwa.LastIndexOf(Path.DirectorySeparatorChar));
                     if (nazwa.Contains(Globalne.nazwy_plikow_planu[(int)Globalne.pliki_plany.Nowy])) Globalne.rozszerzenia_plikow_planu[(int)Globalne.pliki_plany.Nowy] = nazwa_bez_sciezki.Substring(nazwa_bez_sciezki.LastIndexOf('.'));
                     else if (nazwa.Contains(Globalne.nazwy_plikow_planu[(int)Globalne.pliki_plany.Stary])) Globalne.rozszerzenia_plikow_planu[(int)Globalne.pliki_plany.Stary] = nazwa_bez_sciezki.Substring(nazwa_bez_sciezki.LastIndexOf('.'));
                 }
@@ -102,7 +103,7 @@ namespace Operacje
         {
             Excel ex = new Excel();
             DateTime dzisiaj = DateTime.Now;
-            List<string> lista_plikow = plk.Zwroc_liste_plikow(Globalne.lokalizacja + Globalne.nazwy_folderow[(int)Globalne.foldery.Elearning]);
+            List<string> lista_plikow = plk.Zwroc_liste_plikow(Path.Combine(Globalne.lokalizacja, Globalne.nazwy_folderow[(int)Globalne.foldery.Elearning]));
             if (lista_plikow == null || lista_plikow.Count == 0) return;
             List<Elearning> zajecia = ex.Zwroc_zajecia_elearning_dla_grupy(lista_plikow[0], dzisiaj, ((Config)pobrane_obiekty_xml[(int)Globalne.pliki_xml.Config]).semestr);
             if (zajecia == null || zajecia.Count == 0) return;
@@ -125,9 +126,9 @@ namespace Operacje
         {
             Excel ex = new Excel();
             DateTime dzisiaj = DateTime.Now;
-            Dzien dzien=ex.Zwroc_dzien(Globalne.lokalizacja + @"/" + Globalne.nazwy_folderow[(int)Globalne.foldery.Plany] + @"/" + Globalne.nazwy_plikow_planu[(int)Globalne.pliki_plany.Nowy] + Globalne.rozszerzenia_plikow_planu[(int)Globalne.pliki_plany.Nowy], dzisiaj.ToString("d.MM"), ((Config)pobrane_obiekty_xml[(int)Globalne.pliki_xml.Config]).semestr);
+            Dzien dzien=ex.Zwroc_dzien(Path.Combine(Globalne.lokalizacja, Globalne.nazwy_folderow[(int)Globalne.foldery.Plany], Globalne.nazwy_plikow_planu[(int)Globalne.pliki_plany.Nowy] + Globalne.rozszerzenia_plikow_planu[(int)Globalne.pliki_plany.Nowy]), dzisiaj.ToString("d.MM"), ((Config)pobrane_obiekty_xml[(int)Globalne.pliki_xml.Config]).semestr);
             if (dzien == null) return;
-            List<string> lista_plikow = plk.Zwroc_liste_plikow(Globalne.lokalizacja + Globalne.nazwy_folderow[(int)Globalne.foldery.Elearning]);
+            List<string> lista_plikow = plk.Zwroc_liste_plikow(Path.Combine(Globalne.lokalizacja, Globalne.nazwy_folderow[(int)Globalne.foldery.Elearning]));
             if (lista_plikow == null || lista_plikow.Count == 0) return;
             List<string[]> dane = ex.Zwroc_nazwiska_linki(lista_plikow[0]);
             if (dane == null || dane.Count == 0) return;

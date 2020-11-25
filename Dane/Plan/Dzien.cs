@@ -25,7 +25,7 @@ namespace Dane.Plan
         public bool Czy_inny_plan(Dzien stary_dzien)
         {
             if (stary_dzien.zajecia.Count != this.zajecia.Count) return true;
-            for (int i = 0; i < this.zajecia.Count; i++) if (!stary_dzien.zajecia[i].Equals(this.zajecia[i])) return true;
+            for (int i = 0; i < this.zajecia.Count; i++) if (!stary_dzien.zajecia[i].Czy_takie_same(this.zajecia[i])) return true;
             return false;
         }
         public string Zwroc_dane_do_wiadomosci_dla_grupy(int numer_grupy, List<string[]> linki)
@@ -55,16 +55,12 @@ namespace Dane.Plan
             //elearning po zmianach
             public int grupa = 0;
             public string wykladowca = "";
-            public override bool Equals(Object obj)
+            public bool Czy_takie_same(Object obj)
             {
                 Zajecie zaj = (Zajecie)obj;
                 if (this.godzina.Trim() != zaj.godzina.Trim()) return false;
                 if (this.nazwa.Trim() != zaj.nazwa.Trim()) return false;
                 return true;
-            }
-            public override int GetHashCode()
-            {
-                return (nazwa+godzina).GetHashCode();
             }
         }
     }
