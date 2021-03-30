@@ -176,12 +176,22 @@ namespace Operacje
                                 row_number++;
                                 if (!czy_znaleziono && zmergowane.Count!=0 && row_number != zmergowane[0].FromRow) continue;
                                 bool wykladowcy = false;
+                                bool czy_pierwsza_pusta = false;
                                 for (int column = col_start; column < col_stop + 1; column++)
                                 {
                                     string wartosc = reader.GetValue(column) == null ? "" : reader.GetValue(column).ToString().Trim();
                                     if (!czy_znaleziono)
                                     {
-                                        if (wartosc == "") continue;
+                                        if (wartosc == "")
+                                        {
+                                            if (czy_pierwsza_pusta)
+                                            {
+                                                if(zmergowane.Count!=0) zmergowane.RemoveAt(0);
+                                                break;
+                                            }
+                                            czy_pierwsza_pusta = true;
+                                            continue; 
+                                        }
                                         int numer_dnia = Zwroc_numer_dnia(wartosc);
                                         if (wartosc.Contains(wybrana_data) && numer_dnia != -1)
                                         {
